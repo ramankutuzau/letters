@@ -1,0 +1,32 @@
+object FormLettersChange: TFormLettersChange
+  Left = 0
+  Top = 0
+  BorderStyle = bsDialog
+  Caption = #1044#1086#1073#1072#1074#1083#1077#1085#1080#1077' '#1087#1080#1089#1100#1084#1072
+  ClientHeight = 272
+  ClientWidth = 346
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  Position = poDesktopCenter
+  PixelsPerInch = 96
+  TextHeight = 13
+  object IdFTP1: TIdFTP
+    IPVersion = Id_IPv4
+    Host = '135.181.40.238'
+    ConnectTimeout = 0
+    Password = 'romashka1234'
+    Username = 'romashka'
+    NATKeepAlive.UseKeepAlive = False
+    NATKeepAlive.IdleTimeMS = 0
+    NATKeepAlive.IntervalMS = 0
+    ProxySettings.ProxyType = fpcmNone
+    ProxySettings.Port = 0
+    Left = 192
+    Top = 200
+  end
+end

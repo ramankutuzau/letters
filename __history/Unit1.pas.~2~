@@ -1,0 +1,61 @@
+unit Unit1;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.DBCtrls,
+  Data.DB, Vcl.Grids, Vcl.DBGrids, Vcl.Mask, mySQLDbTables;
+
+type
+  TForm1 = class(TForm)
+    PageControl1: TPageControl;
+    TabSheet1: TTabSheet;
+    TabSheet2: TTabSheet;
+    ComboBoxOutGoing: TComboBox;
+    DBEditOutGoing: TDBEdit;
+    GroupBox1: TGroupBox;
+    DBGridLetters: TDBGrid;
+    Button1: TButton;
+    MySQLDatabaseLetters: TMySQLDatabase;
+    DataSourceLetters: TDataSource;
+    procedure FormCreate(Sender: TObject);
+    procedure ListOutGoingView();
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+  MySQLQueryLetters: TMySQLQuery;
+
+implementation
+
+{$R *.dfm}
+
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+    ListOutGoingView();
+end;
+
+
+procedure TForm1.ListOutGoingView();
+begin
+   MySQLQueryLetters := TMySQLQuery.Create(Application);
+   MySQLQueryLetters.Database := MySQLDatabaseLetters;
+   MySQLQueryLetters.SQL.Text := 'SELECT ListOutgoingMailsID,ShortEssence ' +
+   +' DateAdd, TimeAdd, StatusOutgoingMailsID FROM listoutgoingmails';
+   MySQLQueryLetters.Active := true;
+
+   DataSourceLetters.DataSet := MySQLQueryLetters;
+   DbGridLetters.Columns[0].Width:= 50;
+   DbGridLetters.Columns[1].Width:= 300;
+   DbGridLetters.Columns[2].Width:= 100;
+   DbGridLetters.Columns[3].Width:= 150;
+   DbGridLetters.Columns[4].Width:= 100;
+end;
+
+end.

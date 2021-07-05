@@ -1,0 +1,16 @@
+program Project1;
+
+uses
+  Vcl.Forms,
+  UnitLetters in 'UnitLetters.pas' {FormLetters},
+  UnitLettersAdd in 'UnitLettersAdd.pas' {FormLettersAdd};
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TFormLetters, FormLetters);
+  Application.CreateForm(TFormLettersAdd, FormLettersAdd);
+  Application.Run;
+end.
