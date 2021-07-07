@@ -6,15 +6,19 @@ uses
    Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.DBCtrls,
   Data.DB, Vcl.Grids, Vcl.DBGrids, Vcl.Mask,Vcl.ExtCtrls, mySQLDbTables,System.Zip,idFTP,
-  IdBaseComponent, IdComponent, IdTCPConnection, IdTCPClient,
-  IdExplicitTLSClientServerBase;
+  IdBaseComponent, IdComponent, IdTCPConnection, IdTCPClient,IdFTPCommon,System.IOUtils,
+  IdExplicitTLSClientServerBase, GIFImg;
+
 
 type
   TFormLettersChange = class(TForm)
     procedure AddContentView(BoxCaption : String);
     procedure ButtonAttachOnClick(Sender: TObject);
     procedure ButtonChangeOnClick(Sender: TObject);
+    procedure RequestDelete();
     procedure RequestAdd();
+    procedure idFTPConnet();
+
     constructor Create();
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
@@ -36,6 +40,8 @@ var
   variant : integer;
   NewID,MailsText : String;
   ProgressBar : TProgressBar;
+  idFTP : TidFTP;
+  gif: TGifImage;
 
 implementation
 
@@ -68,33 +74,60 @@ begin
 end;
 
 
+procedure TFormLettersChange.idFTPConnet();
+begin
+    idFTP:=TidFTP.Create(nil);
+    idFTP.Host:='135.181.40.238';
+    idFTP.Username:='romashka';
+    idFTP.Password:='romashka1234';
+    idFTP.Passive := true;
+    idFTP.Connect;
+
+
+end;
+
+procedure TFormLettersChange.RequestDelete();
+begin
+    if variant = 0  then
+     begin
+     MySQLQueryLetters := TMySQLQuery.Create(Application);
+     MySQLQueryLetters.Database := FormLetters.MySQLDatabaseLetters;
+     MySQLQueryLetters.SQL.Text := 'UPDATE `listoutgoingmails` SET'+
+     ' Visible = 0 WHERE `listoutgoingmails`.`ListOutgoingMailsID` = '+newID;
+     MySQLQueryLetters.ExecSQL;
+     end;
+    if variant = 1  then
+     begin
+     MySQLQueryLetters := TMySQLQuery.Create(Application);
+     MySQLQueryLetters.Database := FormLetters.MySQLDatabaseLetters;
+     MySQLQueryLetters.SQL.Text := 'UPDATE `ListIncomingMails` SET'+
+     ' Visible = 0 WHERE `ListIncomingMails`.`ListIncomingmailsID` = '+newID;
+     MySQLQueryLetters.ExecSQL;
+     end;
+end;
+
 
 procedure TFormLettersChange.FormClose(Sender: TObject;
   var Action: TCloseAction);
-var
-   WND:HWND;
-   Tip:integer;
 begin
-   WND:=FormLetters.Handle;
-   Tip:=MB_YESNO+MB_ICONINFORMATION+MB_DEFBUTTON1;
-   if Length(MemoContent.Text) = 0 then
-   begin
-     case MessageBox(Wnd,'Вы действительно хотите оставить поле "Содержание" пустым?',
-     'Информация',Tip) of
-       IDYES:
-         begin
-         RequestAdd();
+
+    if (Length(LabeledEditTittle.Text) > 0) then
+      begin
+        requestAdd();
+      end
+      else
+      begin
+         RequestDelete();
          MemoContent.Clear;
+         LabeledEditTittle.Clear;
+      end;
 
 
-         end;
-       IDNO : Action := caNone;
-     end;
-   end else ButtonChangeOnClick(Sender);
+     FormLetters.ListOutGoingView();
+     FormLetters.ListIncomingView();
 
 
-  FormLetters.ListOutGoingView();
-  FormLetters.ListIncomingView();
+
 end;
 
 procedure TFormLettersChange.AddContentView(BoxCaption : String);
@@ -240,10 +273,14 @@ begin
 end;
 
 
+
+
+
 procedure TFormLettersChange.ButtonAttachOnClick(Sender: TObject);
 var
 openDialog : TOpenDialog; i:integer; Zip: TZipFile;
-idFTP : TidFTP; lastAddID,NameFile,SQLText,SQLValues: String;
+ lastAddID,NameFile,SQLText: String; LoadStream: TMemoryStream;
+
 begin
    if Length(LabeledEditTittle.Text) > 0  then
   begin
@@ -254,19 +291,14 @@ begin
   openDialog.Execute;
 
 
-    idFTP:=TidFTP.Create(nil);
-    idFTP.Host:='135.181.40.238';
-    idFTP.Username:='romashka';
-    idFTP.Password:='romashka1234';
-
     ProgressBar.Position := 0;
 
-    idFTP.Connect;
-    SQLValues := '';
+    idFTPConnet();
+
     SQLText := 'INSERT INTO `listfiles` (`FileID`, `FileName`, `FileType`, `TableID`, `Visible`) VALUES ';
     for i := 0 to OpenDialog.Files.Count - 1 do
       begin
-        ProgressBar.Position := 50;
+         ProgressBar.Position := 0;
         NameFile := LabeledEditTittle.text+'_'+ExtractFileName(OpenDialog.Files.Strings[i]);
          if i = OpenDialog.Files.Count - 1 then
         SQLText := SQLtext + '(NULL, '''+NameFile+''', '''+inttostr(variant)+''', '''+newID+''', 1) ' else
@@ -274,18 +306,20 @@ begin
 
        if idFTP.Connected then
         try
-         idFTP.ReadTimeout := 2000;
-         idFTP.Put(OpenDialog.Files.Strings[i],LabeledEditTittle.text+'_'
-         +ExtractFileName(OpenDialog.Files.Strings[i]),true);
-         ProgressBar.Position := 100;
 
+         idFTP.TransferType := ftBinary;
+         idFTP.Put(OpenDialog.Files.Strings[i],NameFile,true);
+
+         LoadStream.Free;
         except
         on E : Exception do
           ShowMessage('Ошибка загрузки файла: '+E.Message);
         end;
-
+          ProgressBar.Position := 100;
 
       end;
+      idFTP.Free;
+      idFTP.Disconnect;
 
 
      MySQLQueryLetters := TMySQLQuery.Create(Application);
@@ -295,16 +329,10 @@ begin
      MySQLQueryLetters.ExecSQL;
 
 
-
-
-
-
-
-   idFTP.Disconnect;
-
    openDialog.Free;
   end else showmessage('Введите номер письма');
 end;
+
 
 
 procedure TFormLettersChange.RequestAdd();
@@ -337,6 +365,5 @@ begin
    FormLettersChange.Close;
 
 end;
-
 
 end.

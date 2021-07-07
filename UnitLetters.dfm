@@ -5,7 +5,7 @@ object FormLetters: TFormLetters
   Caption = #1050#1085#1080#1075#1072' '#1080#1089#1093#1086#1076#1103#1097#1080#1093' '#1080' '#1074#1093#1086#1076#1103#1097#1080#1093' '#1087#1080#1089#1077#1084
   ClientHeight = 670
   ClientWidth = 1310
-  Color = clBtnFace
+  Color = clWhite
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -94,7 +94,7 @@ object FormLetters: TFormLetters
           Left = 903
           Top = 48
           Width = 386
-          Height = 369
+          Height = 417
           Caption = #1060#1072#1081#1083#1099
           TabOrder = 3
           object DBGridIncomingFile: TDBGrid
@@ -112,6 +112,15 @@ object FormLetters: TFormLetters
             TitleFont.Name = 'SF UI Display'
             TitleFont.Style = []
           end
+          object ButtonSaveAllIncoming: TButton
+            Left = 16
+            Top = 373
+            Width = 129
+            Height = 25
+            Caption = #1057#1082#1072#1095#1072#1090#1100' '#1074#1089#1077' '#1092#1072#1081#1083#1099
+            TabOrder = 1
+            OnClick = ButtonSaveAllIncomingClick
+          end
         end
         object EditIncomingSearch: TEdit
           Left = 88
@@ -126,10 +135,6 @@ object FormLetters: TFormLetters
     object TabSheet2: TTabSheet
       Caption = #1048#1089#1093#1086#1076#1103#1097#1080#1077
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object GroupBox1: TGroupBox
         Left = 0
         Top = 0
@@ -197,7 +202,7 @@ object FormLetters: TFormLetters
           Left = 903
           Top = 48
           Width = 386
-          Height = 369
+          Height = 417
           Caption = #1060#1072#1081#1083#1099
           TabOrder = 3
           object DBGridOutGoingFile: TDBGrid
@@ -214,6 +219,15 @@ object FormLetters: TFormLetters
             TitleFont.Height = -13
             TitleFont.Name = 'SF UI Display'
             TitleFont.Style = []
+          end
+          object ButtonSaveAllOutGoing: TButton
+            Left = 16
+            Top = 373
+            Width = 129
+            Height = 25
+            Caption = #1057#1082#1072#1095#1072#1090#1100' '#1074#1089#1077' '#1092#1072#1081#1083#1099
+            TabOrder = 1
+            OnClick = ButtonSaveAllOutGoingClick
           end
         end
         object EditoutGoingSearch: TEdit

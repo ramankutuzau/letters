@@ -5,8 +5,9 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.DBCtrls,
-  Data.DB, Vcl.Grids, Vcl.DBGrids, Vcl.Mask, mySQLDbTables,UnitLettersChange,idFTP,
-  Vcl.Menus;
+  Data.DB, Vcl.Grids, Vcl.DBGrids, Vcl.Mask,Vcl.ExtCtrls, mySQLDbTables,System.Zip,idFTP,
+  IdBaseComponent, IdComponent, IdTCPConnection, IdTCPClient,IdFTPCommon,System.IOUtils,
+  IdExplicitTLSClientServerBase,FileCtrl,Vcl.Menus,UnitLettersChange;
 
 type
   TFormLetters = class(TForm)
@@ -52,6 +53,8 @@ type
     PopupMenuIncomingFile: TPopupMenu;
     N15: TMenuItem;
     N16: TMenuItem;
+    ButtonSaveAllIncoming: TButton;
+    ButtonSaveAllOutGoing: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ListOutGoingView();
     procedure ListIncomingView();
@@ -63,10 +66,11 @@ type
     procedure OutGoingFileView();
     procedure IncomingFileView();
     procedure IncomingChangeStatus(number : integer);
+    procedure EditoutGoingSearchChange(Sender: TObject);
+    procedure idFTPConneted();
     procedure DBGridIncomingView();
     procedure N1Click(Sender: TObject);
     procedure N2Click(Sender: TObject);
-    procedure EditoutGoingSearchChange(Sender: TObject);
     procedure DBGridOutGoingView();
     procedure N3Click(Sender: TObject);
     procedure N4Click(Sender: TObject);
@@ -82,6 +86,8 @@ type
     procedure N14Click(Sender: TObject);
     procedure N15Click(Sender: TObject);
     procedure N16Click(Sender: TObject);
+    procedure ButtonSaveAllIncomingClick(Sender: TObject);
+    procedure ButtonSaveAllOutGoingClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -95,11 +101,77 @@ var
   DataSourceOutGoing : TDataSource;
   Count,CountIn,SelectRowOutGoing,SelectRowOutGoingFile,
   SelectRowIncoming,SelectRowIncomingFile : String;
+  idFTP : TidFTP;
 
 implementation
 
 {$R *.dfm}
 
+
+procedure TFormLetters.ButtonSaveAllIncomingClick(Sender: TObject);
+var
+SaveFile,dir: String;
+begin
+
+ if (DBGridIncomingFile.DataSource.Dataset.Fields.Fields[0].Value <> null ) then
+   begin
+
+      if not SelectDirectory ('Выберите папку', '', dir, [sdNewFolder, sdNewUI]) then Exit;
+        idFTPConneted();
+        DBGridIncomingFile.DataSource.Dataset.First;
+        While not DBGridIncomingFile.DataSource.Dataset.eof do begin
+           SaveFile := DBGridIncomingFile.DataSource.DataSet.Fields.Fields[0].Value;
+
+            if idFTP.Connected then
+            try
+            idFTP.TransferType := ftBinary;
+             idFTP.Get(SaveFile,dir+'\'+SaveFile,true);
+            except
+
+            end;
+
+           DBGridIncomingFile.DataSource.Dataset.Next;
+
+        end;
+
+        DBGridIncomingFile.DataSource.Dataset.First;
+
+        idFTP.Disconnect;
+   end else showmessage('Нет доступных файлов');
+
+end;
+
+procedure TFormLetters.ButtonSaveAllOutGoingClick(Sender: TObject);
+var SaveFile,dir: String;
+begin
+
+ if (DBGridOutGoingFile.DataSource.Dataset.Fields.Fields[0].Value <> null ) then
+   begin
+
+
+    if not SelectDirectory ('Выберите папку', '', dir, [sdNewFolder, sdNewUI]) then Exit;
+        idFTPConneted();
+        DBGridOutGoingFile.DataSource.Dataset.First;
+        While not DBGridOutGoingFile.DataSource.Dataset.eof do begin
+           SaveFile := DBGridOutGoingFile.DataSource.DataSet.Fields.Fields[0].Value;
+
+            if idFTP.Connected then
+            try
+             idFTP.Get(SaveFile,dir+'\'+SaveFile,true);
+            except
+
+            end;
+
+           DBGridOutGoingFile.DataSource.Dataset.Next;
+
+        end;
+
+        DBGridOutGoingFile.DataSource.Dataset.First;
+
+        idFTP.Disconnect;
+   end else showmessage('Нет доступных файлов');
+
+end;
 
 procedure TFormLetters.ButtonIncomingClick(Sender: TObject);
  var
@@ -245,6 +317,9 @@ begin
 
     ListOutGoingView();
     ListIncomingView();
+
+
+
 
 end;
 
@@ -393,22 +468,30 @@ begin
      IncomingFileView();
 end;
 
+procedure TFormLetters.idFTPConneted();
+begin
+    idFTP:=TidFTP.Create(nil);
+    idFTP.Host:='135.181.40.238';
+    idFTP.Username:='romashka';
+    idFTP.Password:='romashka1234';
+    idFTP.Passive := true;
+    idFTP.Connect;
+end;
+
 procedure TFormLetters.N16Click(Sender: TObject);
-var idFTP : TidFTP;
+var
 SaveDialog : TSaveDialog;
 begin
 
     SelectRowIncomingFile := DBGridIncomingFile.DataSource.DataSet.Fields.Fields[0].Value;
 
-    idFTP:=TidFTP.Create(nil);
-    idFTP.Host:='135.181.40.238';
-    idFTP.Username:='romashka';
-    idFTP.Password:='romashka1234';
 
-     idFTP.Connect;
-     SaveDialog := TSaveDialog.Create(self);
+
+      SaveDialog := TSaveDialog.Create(self);
       SaveDialog.FileName := SelectRowIncomingFile;
       SaveDialog.Execute;
+
+      idFTPConneted();
 
      if idFTP.Connected then
       try
@@ -417,6 +500,8 @@ begin
       except
 
       end;
+
+      idFTP.Disconnect;
 
 end;
 
@@ -500,21 +585,18 @@ begin
 end;
 
 procedure TFormLetters.N4Click(Sender: TObject);
-var idFTP : TidFTP;
+var
 SaveDialog : TSaveDialog;
 begin
 
     SelectRowOutGoingFile := DBGridOutGoingFile.DataSource.DataSet.Fields.Fields[0].Value;
 
-    idFTP:=TidFTP.Create(nil);
-    idFTP.Host:='135.181.40.238';
-    idFTP.Username:='romashka';
-    idFTP.Password:='romashka1234';
 
-     idFTP.Connect;
      SaveDialog := TSaveDialog.Create(self);
       SaveDialog.FileName := SelectRowOutGoingFile;
       SaveDialog.Execute;
+
+      idFTPConneted();
 
      if idFTP.Connected then
       try
@@ -523,6 +605,8 @@ begin
       except
 
       end;
+
+      idFTP.Disconnect;
 
 end;
 
@@ -569,9 +653,12 @@ begin
 end;
 
 procedure  TFormLetters.OutGoingChangeStatus(number : integer);
+var id : integer;
 begin
 
    SelectRowOutGoing := DBGridOutGoing.DataSource.DataSet.Fields.Fields[0].Value;
+
+   id := TStringGrid(DBGridOutGoing).Row;
 
    MySQLQueryLetters := TMySQLQuery.Create(Application);
    MySQLQueryLetters.Database := FormLetters.MySQLDatabaseLetters;
@@ -581,13 +668,17 @@ begin
    MySQLQueryLetters.ExecSQL;
 
    ListOutGoingView();
+   DBGridOutGoing.DataSource.DataSet.RecNo := id;
 
 end;
 
 procedure  TFormLetters.IncomingChangeStatus(number : integer);
+var id:integer;
 begin
 
    SelectRowIncoming := DBGridIncoming.DataSource.DataSet.Fields.Fields[0].Value;
+
+   id := TStringGrid(DBGridIncoming).Row;
 
    MySQLQueryLetters := TMySQLQuery.Create(Application);
    MySQLQueryLetters.Database := FormLetters.MySQLDatabaseLetters;
@@ -597,6 +688,8 @@ begin
    MySQLQueryLetters.ExecSQL;
 
    ListIncomingView();
+
+   DBGridIncoming.DataSource.DataSet.RecNo := id;
 
 end;
 

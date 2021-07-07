@@ -3,9 +3,9 @@ object FormLettersChange: TFormLettersChange
   Top = 0
   BorderStyle = bsDialog
   Caption = #1044#1086#1073#1072#1074#1083#1077#1085#1080#1077' '#1087#1080#1089#1100#1084#1072
-  ClientHeight = 269
-  ClientWidth = 308
-  Color = clBtnFace
+  ClientHeight = 273
+  ClientWidth = 309
+  Color = clWhite
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
