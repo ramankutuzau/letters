@@ -3,7 +3,7 @@ object FormLettersChange: TFormLettersChange
   Top = 0
   BorderStyle = bsDialog
   Caption = #1044#1086#1073#1072#1074#1083#1077#1085#1080#1077' '#1087#1080#1089#1100#1084#1072
-  ClientHeight = 240
+  ClientHeight = 384
   ClientWidth = 312
   Color = clWhite
   Font.Charset = DEFAULT_CHARSET
@@ -14,8 +14,6 @@ object FormLettersChange: TFormLettersChange
   OldCreateOrder = False
   Position = poDesktopCenter
   OnClose = FormClose
-  OnCloseQuery = FormCloseQuery
-  OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
 end

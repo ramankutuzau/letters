@@ -71,7 +71,7 @@ type
     procedure IncomingFileView();
     procedure IncomingChangeStatus(number : integer);
     procedure EditoutGoingSearchChange(Sender: TObject);
-    procedure idFTPConnected();
+    procedure idFTPConneted();
     procedure DBGridIncomingView();
     procedure N1Click(Sender: TObject);
     procedure N2Click(Sender: TObject);
@@ -92,7 +92,6 @@ type
     procedure N16Click(Sender: TObject);
     procedure ButtonSaveAllIncomingClick(Sender: TObject);
     procedure ButtonSaveAllOutGoingClick(Sender: TObject);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
 
   private
     { Private declarations }
@@ -115,35 +114,29 @@ implementation
 
 procedure TFormLetters.ButtonSaveAllIncomingClick(Sender: TObject);
 begin
-
-   SaveAllFilesIncoming();
+SaveAllFilesOutGoing();
 end;
 
-procedure TFormLetters.SaveAllFilesIncoming();
+procedure TFormLetters.SaveAllFilesOutGoing();
 var
-SaveFile,dir, FileName: String;
+SaveFile,dir: String;
 begin
 
  if (DBGridIncomingFile.DataSource.Dataset.Fields.Fields[0].Value <> null ) then
    begin
 
       if not SelectDirectory ('Выберите папку', '', dir, [sdNewFolder, sdNewUI]) then Exit;
-
+        idFTPConneted();
         DBGridIncomingFile.DataSource.Dataset.First;
-
         While not DBGridIncomingFile.DataSource.Dataset.eof do begin
-
            SaveFile := DBGridIncomingFile.DataSource.DataSet.Fields.Fields[0].Value;
-           FileName := StringReplace(SaveFile, ':', ' ',[rfReplaceAll, rfIgnoreCase]);
 
             if idFTP.Connected then
             try
-             idFTP.TransferType := ftBinary;
-             idFTP.Get(SaveFile,dir+'\'+FileName,true);
+            idFTP.TransferType := ftBinary;
+             idFTP.Get(SaveFile,dir+'\'+SaveFile,true);
+            except
 
-
-            except on E : Exception do
-            ShowMessage('Ошибка загрузки файла: '+E.Message);
             end;
 
            DBGridIncomingFile.DataSource.Dataset.Next;
@@ -152,18 +145,18 @@ begin
 
         DBGridIncomingFile.DataSource.Dataset.First;
 
-
+        idFTP.Disconnect;
    end else showmessage('Нет доступных файлов');
 
 end;
 
 procedure TFormLetters.ButtonSaveAllOutGoingClick(Sender: TObject);
 begin
-SaveAllFilesOutGoing();
+SaveAllFilesIncoming();
 end;
 
-procedure TFormLetters.SaveAllFilesOutgoing();
-var SaveFile,dir,FileName: String;
+procedure TFormLetters.SaveAllFilesIncoming();
+var SaveFile,dir: String;
 begin
 
  if (DBGridOutGoingFile.DataSource.Dataset.Fields.Fields[0].Value <> null ) then
@@ -171,20 +164,16 @@ begin
 
 
     if not SelectDirectory ('Выберите папку', '', dir, [sdNewFolder, sdNewUI]) then Exit;
-
+        idFTPConneted();
         DBGridOutGoingFile.DataSource.Dataset.First;
         While not DBGridOutGoingFile.DataSource.Dataset.eof do begin
-
-           SaveFile := DBGridOutgoingFile.DataSource.DataSet.Fields.Fields[0].Value;
-           FileName := StringReplace(SaveFile, ':', ' ',[rfReplaceAll, rfIgnoreCase]);
+           SaveFile := DBGridOutGoingFile.DataSource.DataSet.Fields.Fields[0].Value;
 
             if idFTP.Connected then
             try
-             idFTP.TransferType := ftBinary;
-             idFTP.Get(SaveFile,dir+'\'+FileName,true);
+             idFTP.Get(SaveFile,dir+'\'+SaveFile,true);
+            except
 
-            except on E : Exception do
-            ShowMessage('Ошибка загрузки файла: '+E.Message);
             end;
 
            DBGridOutGoingFile.DataSource.Dataset.Next;
@@ -193,7 +182,7 @@ begin
 
         DBGridOutGoingFile.DataSource.Dataset.First;
 
-
+        idFTP.Disconnect;
    end else showmessage('Нет доступных файлов');
 end;
 
@@ -288,40 +277,30 @@ end;
 
 procedure TFormLetters.OutGoingFileView();
 begin
-if DBGridOutGoing.DataSource.DataSet.Fields.Fields[0].Value <> null then
-  begin
    SelectRowOutGoing := DBGridOutGoing.DataSource.DataSet.FieldByName('ListOutGoingMailsID').AsString;
    MySQLQueryLetters := TMySQLQuery.Create(Application);
    MySQLQueryLetters.Database := MySQLDatabaseLetters;
-   MySQLQueryLetters.SQL.Text := 'SELECT FileName, Description FROM listfiles WHERE '+
+   MySQLQueryLetters.SQL.Text := 'SELECT FileName FROM listfiles WHERE '+
    ' TableID = '+SelectRowOutGoing +' AND Visible = 1 AND FileType = 0 ';
    MySQLQueryLetters.Active := true;
 
    DataSourceOutGoingFile.DataSet := MySQLQueryLetters;
-   DbGridOutGoingFile.Columns[0].Width := 210;
+   DbGridOutGoingFile.Columns[0].Width := 315;
    DbGridOutGoingFile.Columns[0].Title.Caption := 'Имя файла';
-   DbGridOutGoingFile.Columns[1].Width := 200;
-   DbGridOutGoingFile.Columns[1].Title.Caption := 'Описание';
-  end;
 end;
 
 procedure TFormLetters.IncomingFileView();
 begin
-if DBGridIncoming.DataSource.DataSet.Fields.Fields[0].Value <> null then
-   begin
    SelectRowIncoming := DBGridIncoming.DataSource.DataSet.FieldByName('ListIncomingMailsID').AsString;
    MySQLQueryLetters := TMySQLQuery.Create(Application);
    MySQLQueryLetters.Database := MySQLDatabaseLetters;
-   MySQLQueryLetters.SQL.Text := 'SELECT FileName, Description FROM listfiles WHERE '+
+   MySQLQueryLetters.SQL.Text := 'SELECT FileName FROM listfiles WHERE '+
    ' TableID = '+SelectRowIncoming +' AND Visible = 1 AND FileType = 1 ';
    MySQLQueryLetters.Active := true;
 
    DataSourceIncomingFile.DataSet := MySQLQueryLetters;
-   DbGridIncomingFile.Columns[0].Width := 210;
+   DbGridIncomingFile.Columns[0].Width := 315;
    DbGridIncomingFile.Columns[0].Title.Caption := 'Имя файла';
-   DbGridIncomingFile.Columns[1].Width := 200;
-   DbGridIncomingFile.Columns[1].Title.Caption := 'Описание';
-   end;
 end;
 
 
@@ -355,20 +334,14 @@ begin
    DBGridOutgoingView();
 end;
 
-procedure TFormLetters.FormClose(Sender: TObject; var Action: TCloseAction);
-begin
-    idFTP.Disconnect;
-end;
-
 procedure TFormLetters.FormCreate(Sender: TObject);
-var Column : TColumn;
 begin
 
     ListOutGoingView();
     ListIncomingView();
-    DBGridIncomingCellClick(Column);
-    DBGridOutGoingCellClick(Column);
-    idFTPConnected();
+
+
+
 
 end;
 
@@ -424,8 +397,11 @@ begin
    ' ORDER BY ListIncomingMailsID DESC '+countIn+' ';
    MySQLQueryLetters.Active := true;
 
-   DBGridIncoming.DataSource.DataSet := MySQLQueryLetters;
+
+   DataSourceIncoming.DataSet.Fields.Fields[0].asstring := MySQLQueryLetters.Fields.Fields[1].AsString;
+
    DBGridIncomingView();
+
 
 end;
 
@@ -437,23 +413,22 @@ end;
 
 procedure TFormLetters.DBGridIncomingView();
 begin
-   DbGridIncoming.Columns[0].Width := 0;
-   DbGridIncoming.Columns[1].Title.Caption := 'Номер письма';
-   DbGridIncoming.Columns[1].Width := 90;
-   DbGridIncoming.Columns[2].Title.Caption := 'Краткая суть письма';
-   DbGridIncoming.Columns[2].Width := 300;
-   DbGridIncoming.Columns[3].Title.Caption := 'Дата';
-   DbGridIncoming.Columns[3].Width := 70;
-   DbGridIncoming.Columns[4].Title.Caption := 'Время';
-   DbGridIncoming.Columns[4].Width := 70;
-   DbGridIncoming.Columns[5].Title.Caption := 'Статус';
-   DbGridIncoming.Columns[5].Width := 220;
+   DbGridIncoming.Columns[0].Width := 100;
+   DbGridIncoming.Columns[0].Title.Caption := 'Номер письма';
+   DbGridIncoming.Columns[1].Width := 300;
+   DbGridIncoming.Columns[1].Title.Caption := 'Краткая суть письма';
+   DbGridIncoming.Columns[2].Width := 100;
+   DbGridIncoming.Columns[2].Title.Caption := 'Дата';
+   DbGridIncoming.Columns[3].Width := 100;
+   DbGridIncoming.Columns[3].Title.Caption := 'Время';
+   DbGridIncoming.Columns[4].Width := 220;
+   DbGridIncoming.Columns[4].Title.Caption := 'Статус';
 end;
 
 
 procedure TFormLetters.N10Click(Sender: TObject);
 begin
-   SelectRowIncoming := DBGridIncoming.DataSource.DataSet.FieldByName('ListIncomingMailsID').AsString;
+   SelectRowIncoming := DBGridIncoming.DataSource.DataSet.Fields.Fields[0].Value;
 
    MySQLQueryLetters := TMySQLQuery.Create(Application);
    MySQLQueryLetters.Database := MySQLDatabaseLetters;
@@ -469,7 +444,6 @@ begin
    MySQLQueryLetters.FieldByName('NumberMails').AsString;
    UnitLettersChange.MemoContent.Text :=
    MySQLQueryLetters.FieldByName('ShortEssence').AsString;
-   UnitLettersChange.change := true;
 
 
    FormLettersChange.ShowModal;
@@ -493,10 +467,10 @@ end;
 
 procedure TFormLetters.N15Click(Sender: TObject);
 var
-   WND:HWND;
+   WND:HWND;  NameFile:String;
    Tip:integer;
 begin
-   SelectRowIncoming := DBGridIncoming.DataSource.DataSet.FieldByName('ListIncomingMailsID').AsString;
+   SelectRowIncoming := DBGridIncoming.DataSource.DataSet.Fields.Fields[0].Value;
    WND:=FormLetters.Handle;
    Tip:=MB_YESNO+MB_ICONINFORMATION+MB_DEFBUTTON1;
      case MessageBox(Wnd,'Вы действительно хотите удалить файл ?',
@@ -517,7 +491,7 @@ begin
      IncomingFileView();
 end;
 
-procedure TFormLetters.idFTPConnected();
+procedure TFormLetters.idFTPConneted();
 begin
     idFTP:=TidFTP.Create(nil);
     idFTP.Host:='135.181.40.238';
@@ -529,28 +503,28 @@ end;
 
 procedure TFormLetters.N16Click(Sender: TObject);
 var
-SaveDialog : TSaveDialog; FileName : String;
+SaveDialog : TSaveDialog;
 begin
 
-      SelectRowIncomingFile := DBGridIncomingFile.DataSource.DataSet.Fields.Fields[0].Value;
+    SelectRowIncomingFile := DBGridIncomingFile.DataSource.DataSet.Fields.Fields[0].Value;
 
-      FileName := StringReplace(SelectRowIncomingFile, ':', ' ',[rfReplaceAll, rfIgnoreCase]);
+
+
       SaveDialog := TSaveDialog.Create(self);
-      SaveDialog.FileName := FileName;
+      SaveDialog.FileName := SelectRowIncomingFile;
       SaveDialog.Execute;
 
+      idFTPConneted();
 
      if idFTP.Connected then
       try
-
-
        idFTP.Get(SelectRowIncomingFile,SaveDialog.Files.Strings[0],true);
 
       except
 
       end;
 
-
+      idFTP.Disconnect;
 
 end;
 
@@ -601,7 +575,6 @@ SelectRowOutGoing := DBGridOutGoing.DataSource.DataSet.Fields.Fields[0].Value;
    MySQLQueryLetters.FieldByName('ListOutgoingMailsID').AsString;
    UnitLettersChange.MemoContent.Text :=
    MySQLQueryLetters.FieldByName('ShortEssence').AsString;
-   UnitLettersChange.change := true;
 
 
    FormLettersChange.ShowModal;
@@ -610,7 +583,7 @@ end;
 
 procedure TFormLetters.N3Click(Sender: TObject);
 var
-   WND:HWND;
+   WND:HWND;  NameFile:String;
    Tip:integer;
 begin
    SelectRowOutGoing := DBGridOutGoing.DataSource.DataSet.Fields.Fields[0].Value;
@@ -632,22 +605,21 @@ begin
 
      end;
      OutGoingFileView();
-
 end;
 
 procedure TFormLetters.N4Click(Sender: TObject);
 var
-SaveDialog : TSaveDialog; FileName : String;
+SaveDialog : TSaveDialog;
 begin
 
     SelectRowOutGoingFile := DBGridOutGoingFile.DataSource.DataSet.Fields.Fields[0].Value;
 
-      FileName := StringReplace(SelectRowOutGoingFile, ':', ' ',[rfReplaceAll, rfIgnoreCase]);
-      SaveDialog := TSaveDialog.Create(self);
-      SaveDialog.FileName := FileName;
+
+     SaveDialog := TSaveDialog.Create(self);
+      SaveDialog.FileName := SelectRowOutGoingFile;
       SaveDialog.Execute;
 
-
+      idFTPConneted();
 
      if idFTP.Connected then
       try
@@ -657,7 +629,7 @@ begin
 
       end;
 
-
+      idFTP.Disconnect;
 
 end;
 
@@ -681,7 +653,7 @@ var
    WND:HWND;
    Tip:integer;
 begin
-   SelectRowIncoming:= DBGridIncoming.DataSource.DataSet.FieldByName('ListIncomingMailsID').AsString;
+   SelectRowIncoming:= DBGridIncoming.DataSource.DataSet.Fields.Fields[0].Value;
    WND:=FormLetters.Handle;
    Tip:=MB_YESNO+MB_ICONINFORMATION+MB_DEFBUTTON1;
 
@@ -727,7 +699,7 @@ procedure  TFormLetters.IncomingChangeStatus(number : integer);
 var id:integer;
 begin
 
-   SelectRowIncoming := DBGridIncoming.DataSource.DataSet.FieldByName('ListIncomingMailsID').AsString;
+   SelectRowIncoming := DBGridIncoming.DataSource.DataSet.Fields.Fields[0].Value;
 
    id := TStringGrid(DBGridIncoming).Row;
 

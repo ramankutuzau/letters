@@ -115,8 +115,7 @@ implementation
 
 procedure TFormLetters.ButtonSaveAllIncomingClick(Sender: TObject);
 begin
-
-   SaveAllFilesIncoming();
+SaveAllFilesIncoming();
 end;
 
 procedure TFormLetters.SaveAllFilesIncoming();
@@ -175,7 +174,7 @@ begin
         DBGridOutGoingFile.DataSource.Dataset.First;
         While not DBGridOutGoingFile.DataSource.Dataset.eof do begin
 
-           SaveFile := DBGridOutgoingFile.DataSource.DataSet.Fields.Fields[0].Value;
+           SaveFile := DBGridIncomingFile.DataSource.DataSet.Fields.Fields[0].Value;
            FileName := StringReplace(SaveFile, ':', ' ',[rfReplaceAll, rfIgnoreCase]);
 
             if idFTP.Connected then
@@ -288,40 +287,30 @@ end;
 
 procedure TFormLetters.OutGoingFileView();
 begin
-if DBGridOutGoing.DataSource.DataSet.Fields.Fields[0].Value <> null then
-  begin
    SelectRowOutGoing := DBGridOutGoing.DataSource.DataSet.FieldByName('ListOutGoingMailsID').AsString;
    MySQLQueryLetters := TMySQLQuery.Create(Application);
    MySQLQueryLetters.Database := MySQLDatabaseLetters;
-   MySQLQueryLetters.SQL.Text := 'SELECT FileName, Description FROM listfiles WHERE '+
+   MySQLQueryLetters.SQL.Text := 'SELECT FileName FROM listfiles WHERE '+
    ' TableID = '+SelectRowOutGoing +' AND Visible = 1 AND FileType = 0 ';
    MySQLQueryLetters.Active := true;
 
    DataSourceOutGoingFile.DataSet := MySQLQueryLetters;
-   DbGridOutGoingFile.Columns[0].Width := 210;
+   DbGridOutGoingFile.Columns[0].Width := 315;
    DbGridOutGoingFile.Columns[0].Title.Caption := 'Имя файла';
-   DbGridOutGoingFile.Columns[1].Width := 200;
-   DbGridOutGoingFile.Columns[1].Title.Caption := 'Описание';
-  end;
 end;
 
 procedure TFormLetters.IncomingFileView();
 begin
-if DBGridIncoming.DataSource.DataSet.Fields.Fields[0].Value <> null then
-   begin
    SelectRowIncoming := DBGridIncoming.DataSource.DataSet.FieldByName('ListIncomingMailsID').AsString;
    MySQLQueryLetters := TMySQLQuery.Create(Application);
    MySQLQueryLetters.Database := MySQLDatabaseLetters;
-   MySQLQueryLetters.SQL.Text := 'SELECT FileName, Description FROM listfiles WHERE '+
+   MySQLQueryLetters.SQL.Text := 'SELECT FileName FROM listfiles WHERE '+
    ' TableID = '+SelectRowIncoming +' AND Visible = 1 AND FileType = 1 ';
    MySQLQueryLetters.Active := true;
 
    DataSourceIncomingFile.DataSet := MySQLQueryLetters;
-   DbGridIncomingFile.Columns[0].Width := 210;
+   DbGridIncomingFile.Columns[0].Width := 315;
    DbGridIncomingFile.Columns[0].Title.Caption := 'Имя файла';
-   DbGridIncomingFile.Columns[1].Width := 200;
-   DbGridIncomingFile.Columns[1].Title.Caption := 'Описание';
-   end;
 end;
 
 
@@ -361,13 +350,10 @@ begin
 end;
 
 procedure TFormLetters.FormCreate(Sender: TObject);
-var Column : TColumn;
 begin
 
     ListOutGoingView();
     ListIncomingView();
-    DBGridIncomingCellClick(Column);
-    DBGridOutGoingCellClick(Column);
     idFTPConnected();
 
 end;
@@ -532,7 +518,7 @@ var
 SaveDialog : TSaveDialog; FileName : String;
 begin
 
-      SelectRowIncomingFile := DBGridIncomingFile.DataSource.DataSet.Fields.Fields[0].Value;
+     SelectRowIncomingFile := DBGridIncomingFile.DataSource.DataSet.Fields.Fields[0].Value;
 
       FileName := StringReplace(SelectRowIncomingFile, ':', ' ',[rfReplaceAll, rfIgnoreCase]);
       SaveDialog := TSaveDialog.Create(self);
@@ -632,7 +618,6 @@ begin
 
      end;
      OutGoingFileView();
-
 end;
 
 procedure TFormLetters.N4Click(Sender: TObject);
@@ -642,7 +627,7 @@ begin
 
     SelectRowOutGoingFile := DBGridOutGoingFile.DataSource.DataSet.Fields.Fields[0].Value;
 
-      FileName := StringReplace(SelectRowOutGoingFile, ':', ' ',[rfReplaceAll, rfIgnoreCase]);
+      FileName := StringReplace(SelectRowIncomingFile, ':', ' ',[rfReplaceAll, rfIgnoreCase]);
       SaveDialog := TSaveDialog.Create(self);
       SaveDialog.FileName := FileName;
       SaveDialog.Execute;

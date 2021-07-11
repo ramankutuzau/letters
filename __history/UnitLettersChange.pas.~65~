@@ -12,20 +12,19 @@ uses
 
 type
   TFormLettersChange = class(TForm)
+    StringGrid1: TStringGrid;
     procedure AddContentView(BoxCaption : String);
     procedure ButtonAttachOnClick(Sender: TObject);
     procedure ButtonChangeOnClick(Sender: TObject);
     procedure RequestDelete();
     procedure RequestAdd();
-    procedure RequestAddFile();
     procedure idFTPConnet();
     procedure AttachFiles();
 
     procedure StringGridSelectCell(Sender: TObject; ACol,ARow: Integer; var CanSelect: Boolean);
     constructor Create();
-    procedure FormCreate(Sender: TObject);
-    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
   public
@@ -48,9 +47,6 @@ var
   idFTP : TidFTP;
   gif: TGifImage;
   StringGrid: TStringGrid;
-  StringCount : integer;
-  ArrFiles : array of String;
-  change : Boolean;
 
 implementation
 
@@ -119,44 +115,22 @@ end;
 procedure TFormLettersChange.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
-    if StringGrid.RowCount > 1 then
+
+    if (Length(LabeledEditTittle.Text) > 0) then
       begin
-      RequestAddFile();
+        requestAdd();
+      end
+      else
+      begin
+         RequestDelete();
+         MemoContent.Clear;
+         LabeledEditTittle.Clear;
       end;
+
+
      FormLetters.ListOutGoingView();
      FormLetters.ListIncomingView();
-end;
 
-procedure TFormLettersChange.FormCloseQuery(Sender: TObject;
-  var CanClose: Boolean);
-var
-   WND:HWND;
-   Tip:integer;
-begin
-
-if Length(MemoContent.Text) = 0 then
-   begin
-   WND:=FormLetters.Handle;
-   Tip:=MB_YESNO+MB_ICONINFORMATION+MB_DEFBUTTON1;
-     case MessageBox(Wnd,'Если вы оставите поле "Содержание" пустым, письмо не сохранится. Продолжить? ',
-     'Предупреждение',Tip) of
-       IDYES:
-         begin
-             requestDelete();
-             FormLetters.ListOutGoingView();
-             FormLetters.ListIncomingView();
-         end;
-        IDNO:
-         begin
-         CanClose := false;
-         end;
-
-     end;
-
-   end else
-    begin
-      RequestAdd();
-    end;
 
 
 end;
@@ -164,7 +138,6 @@ end;
 procedure TFormLettersChange.FormCreate(Sender: TObject);
 begin
     idFTPConnet();
-    StringCount := 0;
 end;
 
 procedure TFormLettersChange.AddContentView(BoxCaption : String);
@@ -330,7 +303,6 @@ begin
   ColWidths[0]:= 160;
   ColWidths[1]:= 160;
   OnSelectCell := StringGridSelectCell;
-  StringGrid.Options := StringGrid.Options - [goEditing];
   end;
 
 
@@ -339,13 +311,18 @@ end;
 
 
 
+//procedure TFormLettersChange.StringGridAdd();
+//begin
+//
+//end;
+
 procedure TFormLettersChange.StringGridSelectCell(Sender: TObject; ACol,
  ARow: Integer; var CanSelect: Boolean);
 begin
-if (ACol = 1) and (ARow = 0) then
-  StringGrid.Options := StringGrid.Options - [goEditing]
-else
+if (ACol = 0) and (ARow = 1) then
   StringGrid.Options := StringGrid.Options + [goEditing]
+else
+  StringGrid.Options := StringGrid.Options - [goEditing]
 end;
 
 procedure TFormLettersChange.ButtonAttachOnClick(Sender: TObject);
@@ -355,7 +332,7 @@ end;
 
 procedure TFormLettersChange.AttachFiles();
 var
-openDialog : TOpenDialog; i:integer;
+openDialog : TOpenDialog; i:integer; Zip: TZipFile;
  lastAddID,NameFile,SQLText,SQLFileText: String; today : TDateTime;
 
 begin
@@ -365,89 +342,59 @@ begin
       openDialog.InitialDir := GetCurrentDir;
       openDialog.Options := [ofFileMustExist];
       openDialog.Options := [ofAllowMultiSelect];
+      openDialog.Execute;
 
 
     today := Time;
 
-   if openDialog.Execute then
-     begin
-
-      ProgressBar.Position := 25;
-
-      StringGrid.RowCount := OpenDialog.Files.Count + 1 + StringCount;
-
-      SetLength(arrFiles,OpenDialog.Files.Count + StringCount);
-
-      for i := 0 to OpenDialog.Files.Count - 1 do
-        begin
-
-          NameFile := LabeledEditTittle.text + '_' + TimeToStr(today) + '_' + ExtractFileName(OpenDialog.Files.Strings[i]);
-
-          arrFiles[StringCount] := NameFile;
-
-          StringGrid.Cells[0,StringCount + 1] := ExtractFileName(OpenDialog.Files.Strings[i]);
-
-          StringCount := StringCount + 1;
+    ProgressBar.Position := 25;
 
 
 
-         if idFTP.Connected then
-          try
-
-          idFTP.TransferType := ftBinary;
-          idFTP.Put(OpenDialog.Files.Strings[i],NameFile,true);
 
 
-          except
-          on E : Exception do
-            ShowMessage('Ошибка загрузки файла: '+E.Message);
-          end;
-            ProgressBar.Position := 100;
 
+    SQLText := 'INSERT INTO `listfiles` (`FileID`, `FileName`, `FileType`, `TableID`, `Visible`) VALUES ';
+    for i := 0 to OpenDialog.Files.Count - 1 do
+      begin
+        StringGrid.RowCount := OpenDialog.Files.Count+1;
+        StringGrid.Cells[0,i+1] := ExtractFileName(OpenDialog.Files.Strings[i]);
+
+
+        NameFile := LabeledEditTittle.text+'_'+ExtractFileName(OpenDialog.Files.Strings[i])+'_'+TimeToStr(today);
+         if i = OpenDialog.Files.Count - 1 then
+        SQLText := SQLtext + '(NULL, '''+NameFile+''', '''+inttostr(variant)+''', '''+newID+''', 1) ' else
+        SQLText := SQLtext + '(NULL, '''+NameFile+''', '''+inttostr(variant)+''', '''+newID+''', 1), ';
+
+       if idFTP.Connected then
+        try
+
+         idFTP.TransferType := ftBinary;
+         idFTP.Put(OpenDialog.Files.Strings[i],NameFile,true);
+
+
+        except
+        on E : Exception do
+          ShowMessage('Ошибка загрузки файла: '+E.Message);
         end;
+          ProgressBar.Position := 100;
+
+      end;
+      idFTP.Free;
 
 
 
-     end;
+     MySQLQueryLetters := TMySQLQuery.Create(Application);
+     MySQLQueryLetters.Database := FormLetters.MySQLDatabaseLetters;
+     MySQLQueryLetters.SQL.Text := SQLText;
+
+     MySQLQueryLetters.SQL.Text := SQLText;
+     MySQLQueryLetters.ExecSQL;
 
 
-
-
-    end else showmessage('Введите номер письма');
-
+   openDialog.Free;
+  end else showmessage('Введите номер письма');
 end;
-
-procedure  TFormLettersChange.RequestAddFile();
-var i : integer; SQLtext : String;
-begin
-
-
-
-  SQLText := 'INSERT INTO `romashka`.`listfiles` (`FileID`, `FileName`, `FileType`, `TableID`,`Description`, `Visible` ) VALUES ';
-
-    for i := 0 to Length(ArrFiles) - 1 do
-        begin
-
-        if i = Length(ArrFiles) - 1 then
-         SQLText := SQLtext + '(NULL, ''' + ArrFiles[i] + ''', ''' + inttostr(variant) + ''', '''+newID+''', '''+StringGrid.Cells[1,i + 1]+''', 1) ' else
-         SQLText := SQLtext + '(NULL, ''' + ArrFiles[i] + ''', ''' + inttostr(variant) + ''', '''+newID+''','''+StringGrid.Cells[1,i + 1]+''', 1), ';
-
-        end;
-
-       MySQLQueryLetters := TMySQLQuery.Create(Application);
-       MySQLQueryLetters.Database := FormLetters.MySQLDatabaseLetters;
-       MySQLQueryLetters.SQL.Text := SQLText;
-       MySQLQueryLetters.ExecSQL;
-
-
-
-end;
-
-
-
-
-
-
 
 
 
@@ -471,10 +418,6 @@ begin
     ' WHERE `ListIncomingMails`.`ListIncomingMailsID` = '+newID;
      MySQLQueryLetters.ExecSQL;
     end;
-
-   if StringGrid.RowCount > 1 then
-
-
 
 end;
 

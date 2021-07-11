@@ -1,16 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-    <Transaction>1899.12.30 00:00:00.000.519,G:\Projects\Unit1.pas=G:\letters\Unit1.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.726,=G:\Projects\Unit1.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.467,G:\letters\UnitLettersChange.dfm=G:\letters\UnitLettersAdd.dfm</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.882,G:\letters\UnitLetters.pas=G:\letters\Unit1.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.952,G:\letters\UnitLettersAdd.pas=G:\letters\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.952,G:\letters\Unit1.dfm=G:\letters\UnitLettersAdd.dfm</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.519,G:\letters\Unit1.dfm=G:\Projects\Unit1.dfm</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.802,G:\letters\Project1.dproj=G:\Projects\Project1.dproj</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.467,G:\letters\UnitLettersAdd.pas=G:\letters\UnitLettersChange.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.467,G:\letters\UnitLettersAdd.dfm=G:\letters\UnitLettersChange.dfm</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.882,G:\letters\Unit1.dfm=G:\letters\UnitLetters.dfm</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.519,G:\letters\Unit1.pas=G:\Projects\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.882,G:\letters\Unit1.pas=G:\letters\UnitLetters.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.952,G:\letters\Unit1.pas=G:\letters\UnitLettersAdd.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.405,=G:\letters\Unit1.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.882,G:\letters\UnitLetters.dfm=G:\letters\Unit1.dfm</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.802,G:\Projects\Project1.dproj=G:\letters\Project1.dproj</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.952,G:\letters\UnitLettersAdd.dfm=G:\letters\Unit1.dfm</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.467,G:\letters\UnitLettersChange.pas=G:\letters\UnitLettersAdd.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.519,G:\Projects\Unit1.dfm=G:\letters\Unit1.dfm</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.726,=G:\Projects\Unit1.pas</Transaction>
   </Transactions>
 </BorlandProject>
