@@ -1,0 +1,118 @@
+unit UnitStatusChange;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs,UnitMails, Vcl.StdCtrls, Data.DB,
+  mySQLDbTables;
+
+type
+  TFormStatusChange = class(TForm)
+    ComboBoxStatus: TComboBox;
+    procedure ComboBoxStatusChange(Sender: TObject);
+    procedure RequestChangeStatus();
+    constructor Create();
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  FormStatusChange: TFormStatusChange;
+  Variant,ID_Status : Integer;
+  ID,Status: string;
+
+implementation
+
+{$R *.dfm}
+
+uses UnitStatusOutGoing;
+
+procedure TFormStatusChange.ComboBoxStatusChange(Sender: TObject);
+begin
+   if variant = 0 then
+   begin
+    if ComboBoxStatus.ItemIndex = 0 then ID_Status := 1;
+    if ComboBoxStatus.ItemIndex = 1 then ID_Status := 2;
+    if ComboBoxStatus.ItemIndex = 2 then ID_Status := 3;
+   end;
+   if variant = 1 then
+   begin
+    if ComboBoxStatus.ItemIndex = 0 then ID_Status := 4;
+    if ComboBoxStatus.ItemIndex = 1 then ID_Status := 5;
+    if ComboBoxStatus.ItemIndex = 2 then ID_Status := 6;
+   end;
+    RequestChangeStatus();
+   if variant = 0 then FormMails.ListOutGoingView;
+   if variant = 1 then FormMails.ListIncomingView;
+    FormStatusOutGoing.Close;
+
+end;
+
+constructor TFormStatusChange.Create();
+begin
+
+
+
+   if variant = 0 then
+   begin
+      ComboBoxStatus.Items.Add('Письмо сформировано');
+      ComboBoxStatus.Items.Add('Письмо отправлено');
+      ComboBoxStatus.Items.Add('Письмо не получено получателем');
+
+     if Status = 'Письмо сформировано' then ID_Status := 1;
+     if Status = 'Письмо отправлено' then ID_Status := 2;
+     if Status = 'Письмо не получено получателем' then ID_Status := 3;
+
+     ComboBoxStatus.ItemIndex := ID_status - 1;
+   end;
+   if variant = 1 then
+   begin
+      ComboBoxStatus.Items.Add('Письмо зарегистрировано');
+      ComboBoxStatus.Items.Add('ответ отправлен');
+      ComboBoxStatus.Items.Add('Письмо закрыто');
+
+     if Status = 'Письмо зарегистрировано' then ID_Status := 4;
+     if Status = 'Ответ отправлен' then ID_Status := 5;
+     if Status = 'Письмо закрыто' then ID_Status := 6;
+
+     ComboBoxStatus.ItemIndex := ID_status - 4;
+   end;
+
+end;
+
+procedure TFormStatusChange.RequestChangeStatus();
+begin
+
+    if variant = 0 then
+    begin
+    MySQLQueryLetters := TMySQLQuery.Create(Application);
+    MySQLQueryLetters.Database := FormMails.MySQLDatabaseLetters;
+    MySQLQueryLetters.SQL.Text := 'UPDATE `listoutgoingmails` SET '+
+    '`StatusMailsID` =  ''' + inttostr(ID_Status) + ''' ' +
+    ' WHERE `ListOutGoingMailsID` = ''' + ID + ''' ';
+    MySQLQueryLetters.ExecSQL;
+    end;
+
+    if variant = 1 then
+    begin
+    MySQLQueryLetters := TMySQLQuery.Create(Application);
+    MySQLQueryLetters.Database := FormMails.MySQLDatabaseLetters;
+    MySQLQueryLetters.SQL.Text := 'UPDATE `listoutgoingmails` SET '+
+    '`StatusMailsID` =  ''' + inttostr(ID_Status) + ''' ' +
+    ' WHERE `ListOutGoingMailsID` = ''' + ID + ''' ';
+    MySQLQueryLetters.ExecSQL;
+    end;
+
+
+end;
+
+
+
+
+
+
+
+end.

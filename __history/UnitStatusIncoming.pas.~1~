@@ -1,0 +1,25 @@
+unit UnitStatusIncoming;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls;
+
+type
+  TFormStatusIncoming = class(TForm)
+    ComboBoxStatus: TComboBox;
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  FormStatusIncoming: TFormStatusIncoming;
+
+implementation
+
+{$R *.dfm}
+
+end.

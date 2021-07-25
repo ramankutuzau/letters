@@ -1,0 +1,33 @@
+object FormStatusChange: TFormStatusChange
+  Left = 0
+  Top = 0
+  BorderStyle = bsNone
+  Caption = 'FormStatusChange'
+  ClientHeight = 40
+  ClientWidth = 250
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  Position = poDesktopCenter
+  PixelsPerInch = 96
+  TextHeight = 13
+  object ComboBoxStatus: TComboBox
+    Left = 6
+    Top = 8
+    Width = 236
+    Height = 23
+    Style = csDropDownList
+    Font.Charset = RUSSIAN_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'SF UI Display'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 0
+    OnChange = ComboBoxStatusChange
+  end
+end

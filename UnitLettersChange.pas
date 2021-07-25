@@ -18,8 +18,10 @@ type
     procedure RequestDelete();
     procedure RequestAdd();
     procedure RequestAddFile();
+    procedure RequestUpdateFile();
     procedure idFTPConnet();
     procedure AttachFiles();
+    procedure AddFileView();
 
     procedure StringGridSelectCell(Sender: TObject; ACol,ARow: Integer; var CanSelect: Boolean);
     constructor Create();
@@ -48,9 +50,10 @@ var
   idFTP : TidFTP;
   gif: TGifImage;
   StringGrid: TStringGrid;
-  StringCount : integer;
-  ArrFiles : array of String;
+  RowCount,StringCount,arrFilesCount : integer;
+  ArrFiles,ArrFilesDes: array of String;
   change : Boolean;
+
 
 implementation
 
@@ -77,21 +80,34 @@ begin
 
   end;
 
+   AddFileView();
 
 
+end;
+
+procedure TFormLettersChange.AddFileView();
+var i:integer;
+begin
+
+StringGrid.RowCount := Length(ArrFiles) + 1;
+ for i := 0 to Length(ArrFiles) - 1 do
+  begin
+  StringGrid.Cells[0,i + 1] := arrFiles[i];
+  StringGrid.Cells[1,i + 1] := ArrFilesDes[i];
+  end;
 
 end;
 
 
 procedure TFormLettersChange.idFTPConnet();
 begin
+
     idFTP:=TidFTP.Create(nil);
     idFTP.Host:='135.181.40.238';
     idFTP.Username:='romashka';
     idFTP.Password:='romashka1234';
     idFTP.Passive := true;
     idFTP.Connect;
-
 
 end;
 
@@ -119,12 +135,11 @@ end;
 procedure TFormLettersChange.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
-    if StringGrid.RowCount > 1 then
-      begin
-      RequestAddFile();
-      end;
+     RequestUpdateFile();
      FormLetters.ListOutGoingView();
      FormLetters.ListIncomingView();
+     ArrFiles := nil;
+     ArrFilesDes := nil;
 end;
 
 procedure TFormLettersChange.FormCloseQuery(Sender: TObject;
@@ -174,7 +189,7 @@ begin
   GroupBoxMain.Parent := FormLettersChange;
    with GroupBoxMain do begin
   Left := 0;
-  Top := 0;
+  Top := 6;
   Width := 347;
   Height := 217;
   Align := alClient;
@@ -182,22 +197,34 @@ begin
   TabOrder := 0;
   Width := 345;
   Height := 241;
+  Font.Charset := RUSSIAN_CHARSET;
+  Font.Color := clWindowText;
+  Font.Height := -13;
+  Font.Name := 'SF UI Display';
+  Font.Style := [];
+  ParentFont := False;
   end;
 
   GroupBoxTittle := TGroupBox.Create(GroupBoxMain);
   GroupBoxTittle.Parent := GroupBoxMain;
   with GroupBoxTittle do begin
   Left := 11;
-  Top := 14;
+  Top := 18;
   Width := 326;
-  Height := 52;
+  Height := 49;
   TabOrder := 1;
+  Font.Charset := RUSSIAN_CHARSET;
+  Font.Color := clWindowText;
+  Font.Height := -13;
+  Font.Name := 'SF UI Display';
+  Font.Style := [];
+  ParentFont := False;
   end;
 
   LabeledEditTittle :=  TLabeledEdit.Create(GroupBoxTittle);
   LabeledEditTittle.Parent := GroupBoxTittle;
     with LabeledEditTittle do begin
-    Left := 3;
+    Left := 6;
     Top := 21;
     Width := 150;
     Height := 23;
@@ -323,7 +350,7 @@ begin
   ParentFont := False;
   TabOrder := 0;
   Options:=StringGrid.Options + [goEditing];
-  RowCount := 1;
+  RowCount := Rowcount;
   ColCount := 2;
   Cells[0,0] := 'Имя файла';
   Cells[1,0] := 'Описание файла';
@@ -372,41 +399,49 @@ begin
    if openDialog.Execute then
      begin
 
+
       ProgressBar.Position := 25;
 
-      StringGrid.RowCount := OpenDialog.Files.Count + 1 + StringCount;
+      StringGrid.RowCount := Length(ArrFiles) + OpenDialog.Files.Count + 1;
 
-      SetLength(arrFiles,OpenDialog.Files.Count + StringCount);
+      ArrFilesCount := Length(ArrFiles);
 
-      for i := 0 to OpenDialog.Files.Count - 1 do
+      SetLength(arrFiles,OpenDialog.Files.Count);
+
+      StringCount := 0;
+
+
+      for i := 0 to OpenDialog.Files.Count - 1  do
         begin
 
-          NameFile := LabeledEditTittle.text + '_' + TimeToStr(today) + '_' + ExtractFileName(OpenDialog.Files.Strings[i]);
+          NameFile := LabeledEditTittle.text + '_' + TimeToStr(today) + '_' +
+          ExtractFileName(OpenDialog.Files.Strings[i]);
 
-          arrFiles[StringCount] := NameFile;
+          arrFiles[i] := NameFile;
 
-          StringGrid.Cells[0,StringCount + 1] := ExtractFileName(OpenDialog.Files.Strings[i]);
-
-          StringCount := StringCount + 1;
-
-
+          StringGrid.Cells[0, ArrFilesCount + i + 1] := ExtractFileName(OpenDialog.Files.Strings[i]);
 
          if idFTP.Connected then
           try
 
           idFTP.TransferType := ftBinary;
-          idFTP.Put(OpenDialog.Files.Strings[i],NameFile,true);
+          idFTP.Put(OpenDialog.Files.Strings[StringCount],NameFile,true);
 
 
           except
           on E : Exception do
-            ShowMessage('Ошибка загрузки файла: '+E.Message);
+            ShowMessage('Ошибка загрузки файла: ' + E.Message);
           end;
             ProgressBar.Position := 100;
 
+            StringCount := StringCount + 1;
+
         end;
 
-
+       if OpenDialog.Files.Count > 0 then
+          begin
+          RequestAddFile();
+          end;
 
      end;
 
@@ -423,15 +458,14 @@ begin
 
 
 
-  SQLText := 'INSERT INTO `romashka`.`listfiles` (`FileID`, `FileName`, `FileType`, `TableID`,`Description`, `Visible` ) VALUES ';
+  SQLText := 'INSERT INTO `listfiles` (`FileID`, `FileName`, `FileType`, `TableID`,`Description`, `Visible` ) VALUES ';
 
-    for i := 0 to Length(ArrFiles) - 1 do
+    for i := 0 to  Length(ArrFiles) - 1 do
         begin
+          if i = Length(ArrFiles) - 1  then
+           SQLText := SQLtext + '(NULL, ''' + ArrFiles[i] + ''', ''' + inttostr(variant) + ''', '''+newID+''', '''+StringGrid.Cells[1,ArrFilesCount + i + 1]+''', 1) ' else
 
-        if i = Length(ArrFiles) - 1 then
-         SQLText := SQLtext + '(NULL, ''' + ArrFiles[i] + ''', ''' + inttostr(variant) + ''', '''+newID+''', '''+StringGrid.Cells[1,i + 1]+''', 1) ' else
-         SQLText := SQLtext + '(NULL, ''' + ArrFiles[i] + ''', ''' + inttostr(variant) + ''', '''+newID+''','''+StringGrid.Cells[1,i + 1]+''', 1), ';
-
+        SQLText := SQLtext + '(NULL, ''' + ArrFiles[i] + ''', ''' + inttostr(variant) + ''', '''+newID+''','''+StringGrid.Cells[1,ArrFilesCount + i + 1]+''', 1), ';
         end;
 
        MySQLQueryLetters := TMySQLQuery.Create(Application);
@@ -442,11 +476,6 @@ begin
 
 
 end;
-
-
-
-
-
 
 
 
@@ -486,4 +515,53 @@ begin
 
 end;
 
+
+
+procedure  TFormLettersChange.RequestUpdateFile();
+var i,dif : integer; SQLtext : String; ArrFiles1 : array of String;
+begin
+
+//      Setlength(ArrFiles1,StringGrid.RowCount - 1);
+//
+//      dif := Length(ArrFiles1) - Length(ArrFiles) + 1; // 5 - 3 = 2
+//                          // 5
+//      for i := 0 to Length(ArrFiles1) do
+//        begin
+//           if i <= dif  then
+//           arrFiles1[i] := StringGrid.Cells[0,i + 1]
+//           else ArrFiles1[i] := ArrFiles[i];
+//        end;
+
+     if StringGrid.RowCount > 1 then
+   begin
+
+    SQLText := ' ';
+
+   for i := 0 to ArrFilesCount  do
+        begin
+         SQLText :=  SQLText + ' UPDATE `listfiles` SET `FileName` = ''' + StringGrid.Cells[0,i + 1] +
+         ''', `FileType` = ''' + inttostr(variant) + ''', `TableID` =  '''+newID+''', `Description` = '''+StringGrid.Cells[1,i + 1]+
+         ''', `Visible` = 1 WHERE `listfiles`.`FileName` = ''' + StringGrid.Cells[0,i + 1] + '''; ' ;
+        end;
+
+    for i := 0 to Length(ArrFiles) - 1 do
+      begin
+          SQLText :=  SQLText + ' UPDATE `listfiles` SET `FileName` = ''' + ArrFiles[i] +
+         ''', `FileType` = ''' + inttostr(variant) + ''', `TableID` =  '''+newID+''', `Description` = '''+StringGrid.Cells[1,ArrFilesCount + i + 1]+
+         ''', `Visible` = 1 WHERE `listfiles`.`FileName` = ''' + ArrFiles[i] + '''; ' ;
+
+      end;
+
+       MySQLQueryLetters := TMySQLQuery.Create(Application);
+       MySQLQueryLetters.Database := FormLetters.MySQLDatabaseLetters;
+       MySQLQueryLetters.SQL.Text := SQLText;
+       MySQLQueryLetters.ExecSQL;
+
+
+
+
+   end;
+end;
+
 end.
+

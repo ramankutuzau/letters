@@ -1,0 +1,26 @@
+program Project1;
+
+uses
+  Vcl.Forms,
+  UnitLetters in 'UnitLetters.pas' {FormLetters},
+  UnitLettersChange in 'UnitLettersChange.pas' {FormLettersChange},
+  UnitMails in 'UnitMails.pas' {FormMails},
+  UnitStatusOutGoing in 'UnitStatusOutGoing.pas' {FormStatusOutGoing},
+  UnitAddLetters in 'UnitAddLetters.pas' {FormAddLetters},
+  UnitStatusIncoming in 'UnitStatusIncoming.pas' {FormStatusIncoming},
+  UnitStatusChange in 'UnitStatusChange.pas' {FormStatusChange};
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+//  Application.CreateForm(TFormLetters, FormLetters);
+//  Application.CreateForm(TFormLettersChange, FormLettersChange);
+  Application.CreateForm(TFormMails, FormMails);
+  Application.CreateForm(TFormStatusOutGoing, FormStatusOutGoing);
+  Application.CreateForm(TFormAddLetters, FormAddLetters);
+  Application.CreateForm(TFormStatusIncoming, FormStatusIncoming);
+  Application.CreateForm(TFormStatusChange, FormStatusChange);
+  Application.Run;
+end.

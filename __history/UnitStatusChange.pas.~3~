@@ -1,0 +1,113 @@
+unit UnitStatusChange;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs,UnitMails, Vcl.StdCtrls, Data.DB,
+  mySQLDbTables, Vcl.DBCtrls;
+
+type
+  TFormStatusChange = class(TForm)
+    procedure RequestChangeStatus();
+    constructor Create();
+    procedure DBLookupComboBoxStatusClick(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  FormStatusChange: TFormStatusChange;
+  StatusType,ID_Status : Integer;
+  ID,Status: string;
+  DBLookupComboBoxStatus : TDBLookupComboBox;
+  DataSourceStatus: TDataSource;
+
+implementation
+
+{$R *.dfm}
+
+
+constructor TFormStatusChange.Create();
+begin
+
+
+DBLookupComboBoxStatus := TDBLookupComboBox.Create(FormStatusChange);
+DBLookupComboBoxStatus.Parent := FormStatusChange;
+with DBLookupComboBoxStatus do
+  begin
+    Left := 8;
+    Top := 8;
+    Width := 240;
+    Height := 40;
+    DataSource := DataSourceStatus;
+    Font.Charset := RUSSIAN_CHARSET;
+    Font.Color := clWindowText;
+    Font.Height := -13;
+    Font.Name := 'SF UI Display';
+    Font.Style := [];
+    ListField := '0';
+    ReadOnly := True;
+    TabOrder := 0;
+    OnClick := DBLookupComboBoxStatusClick;
+  end;
+
+
+
+   MySQLQueryLetters := TMySQLQuery.Create(Application);
+   MySQLQueryLetters.Database := FormMails.MySQLDatabaseLetters;
+   MySQLQueryLetters.SQL.Text := 'SELECT ListStatusMailsID,StatusMails FROM ListStatusMails'+
+   ' WHERE  StatusType = '''+inttostr(StatusType)+''' ';
+   MySQLQueryLetters.Active := true;
+
+   DataSourceStatus := TDataSource.Create(Application);
+   DataSourceStatus.DataSet := MySQLQueryLetters;
+
+   DBLookupComboBoxStatus.ListSource := DataSourceStatus;
+   DBLookupComboBoxStatus.KeyField := 'ListStatusMailsID';
+   DBLookupComboBoxStatus.ListField := 'StatusMails';
+
+end;
+procedure TFormStatusChange.DBLookupComboBoxStatusClick(Sender: TObject);
+begin
+   RequestChangeStatus();
+   if StatusType = 0 then FormMails.ListOutGoingView;
+   if StatusType = 1 then FormMails.ListIncomingView;
+   FormStatusChange.Close;
+end;
+
+procedure TFormStatusChange.RequestChangeStatus();
+begin
+     showmessage(DBLookupComboBoxStatus.KeyValue);
+    if StatusType = 0 then
+    begin
+    MySQLQueryLetters := TMySQLQuery.Create(Application);
+    MySQLQueryLetters.Database := FormMails.MySQLDatabaseLetters;
+    MySQLQueryLetters.SQL.Text := 'UPDATE `listoutgoingmails` SET '+
+    '`StatusMailsID` =  ''' + DBLookupComboBoxStatus.KeyValue + ''' ' +
+    ' WHERE `ListOutGoingMailsID` = ''' + ID + ''' ';
+    MySQLQueryLetters.ExecSQL;
+    end;
+
+    if StatusType = 1 then
+    begin
+    MySQLQueryLetters := TMySQLQuery.Create(Application);
+    MySQLQueryLetters.Database := FormMails.MySQLDatabaseLetters;
+    MySQLQueryLetters.SQL.Text := 'UPDATE `ListIncomingMails` SET '+
+    '`StatusMailsID` =  ''' + DBLookupComboBoxStatus.KeyValue + ''' ' +
+    ' WHERE `ListIncomingMailsID` = ''' + ID + ''' ';
+    MySQLQueryLetters.ExecSQL;
+    end;
+
+
+end;
+
+
+
+
+
+
+
+end.

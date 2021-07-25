@@ -1,0 +1,52 @@
+unit UnitStatus;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls;
+
+type
+  TFormStatus = class(TForm)
+    ComboBoxStatus: TComboBox;
+    constructor Create();
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  FormStatus: TFormStatus;
+  ID : string;
+  Status : String;
+  ID_Status : Integer;
+  MySQLQueryStatus : TMySQLQuery;
+
+implementation
+
+{$R *.dfm}
+
+constructor TFormStatus.Create();
+begin
+   showmessage(Status);
+     if Status = 'Письмо сформировано' then ID_Status := 1;
+     if Status = 'Письмо отправлено' then ID_Status := 2;
+     if Status = 'Письмо не получено получателем' then ID_Status := 3;
+
+     ComboBoxStatus.ItemIndex := ID_status - 1;
+end;
+
+procedure TFormStatus.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+
+    MySQLQueryStatus := TMySQLQuery.Create(Application);
+    MySQLQueryStatus.Database := MySQLDatabaseLetters;
+    MySQLQueryStatus.SQL.Text := '';
+
+    MySQLQueryStatus.ExecSQL;
+
+end;
+
+end.
