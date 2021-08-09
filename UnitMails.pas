@@ -100,6 +100,7 @@ type
     procedure EditincomingKeyPress(Sender: TObject; var Key: Char);
     procedure ButtonIncomingSearchClick(Sender: TObject);
     procedure Button4Click(Sender: TObject);
+    procedure FormResize(Sender: TObject);
 
 
   private
@@ -142,6 +143,7 @@ var
    MyThreadUpload : TMyThreadUpload;
    MyThreadSave : TMyThreadSave;
    ThreadExecute : Boolean;
+   width,heigth : integer;
 
 
 implementation
@@ -502,6 +504,28 @@ begin
     idFTPConnet();
     StringGridOutGoingFile.RowCount := 1;
     StringGridIncomingFile.RowCount := 1;
+
+end;
+
+procedure TFormMails.FormResize(Sender: TObject);
+begin
+    if FormMails.Width < 1300 then FormMails.Width := 1300;
+    if FormMails.Height < 700 then FormMails.Height := 700;
+
+    StringGridIncoming.Width := FormMails.Width - 455;
+    StringGridIncoming.Height := FormMails.Height - 118;
+    GroupBoxIncomingFile.Left := FormMails.Width - 443;
+    GroupBoxIncomingFile.Height := FormMails.Height - 70;
+    StringGridIncomingFile.Height := FormMails.Height - 141;
+    StringGridIncoming.ColWidths[2] := StringGridIncoming.Width - 435;
+
+    StringGridOutGoing.Width := FormMails.Width - 455;
+    StringGridOutGoing.Height := FormMails.Height - 118;
+    GroupBoxOutGoingFile.Left := FormMails.Width - 443;
+    GroupBoxOutGoingFile.Height := FormMails.Height - 70;
+    StringGridOutGoingFile.Height := FormMails.Height - 141;
+    StringGridOutGoing.ColWidths[2] := StringGridIncoming.Width - 435;
+
 
 end;
 

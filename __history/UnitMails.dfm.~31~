@@ -21,7 +21,7 @@ object FormMails: TFormMails
     Top = 0
     Width = 1284
     Height = 661
-    ActivePage = TabSheet1
+    ActivePage = TabSheet2
     Align = alClient
     TabOrder = 0
     object TabSheet1: TTabSheet
@@ -65,6 +65,7 @@ object FormMails: TFormMails
           Top = 46
           Width = 845
           Height = 582
+          Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine]
           PopupMenu = PopupMenuOutGoing
           TabOrder = 3
           OnDblClick = StringGridOutGoingDblClick
@@ -73,7 +74,7 @@ object FormMails: TFormMails
         end
         object GroupBoxOutGoingFile: TGroupBox
           Left = 857
-          Top = 9
+          Top = 3
           Width = 420
           Height = 630
           Caption = #1047#1072#1075#1088#1091#1078#1077#1085#1085#1099#1077' '#1092#1072#1081#1083#1099' '#1082' '#1087#1080#1089#1100#1084#1091' #'
@@ -96,16 +97,16 @@ object FormMails: TFormMails
             TabOrder = 1
             OnClick = ButtonOutGoingUploadClick
           end
-          object StringGridOutGoingFile: TStringGrid
-            Left = 3
-            Top = 60
-            Width = 414
-            Height = 559
-            PopupMenu = PopupMenuIncomingFile
-            TabOrder = 2
-            OnDblClick = StringGridOutGoingFileDblClick
-            OnSelectCell = StringGridOutGoingFileSelectCell
-          end
+        end
+        object StringGridOutGoingFile: TStringGrid
+          Left = 860
+          Top = 69
+          Width = 416
+          Height = 559
+          Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine]
+          PopupMenu = PopupMenuOutGoingFile
+          TabOrder = 5
+          OnDblClick = StringGridOutGoingFileDblClick
         end
       end
     end
@@ -151,6 +152,7 @@ object FormMails: TFormMails
           Top = 46
           Width = 845
           Height = 582
+          Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine]
           PopupMenu = PopupMenuIncoming
           TabOrder = 3
           OnDblClick = StringGridIncomingDblClick
@@ -169,6 +171,7 @@ object FormMails: TFormMails
             Top = 60
             Width = 414
             Height = 559
+            Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine]
             PopupMenu = PopupMenuIncomingFile
             TabOrder = 0
             OnDblClick = StringGridIncomingFileDblClick

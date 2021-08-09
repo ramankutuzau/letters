@@ -14,6 +14,7 @@ object FormMails: TFormMails
   Position = poMainFormCenter
   OnClose = FormClose
   OnCreate = FormCreate
+  OnResize = FormResize
   PixelsPerInch = 96
   TextHeight = 15
   object PageControl1: TPageControl
@@ -21,7 +22,7 @@ object FormMails: TFormMails
     Top = 0
     Width = 1284
     Height = 661
-    ActivePage = TabSheet2
+    ActivePage = TabSheet1
     Align = alClient
     TabOrder = 0
     object TabSheet1: TTabSheet
@@ -97,22 +98,32 @@ object FormMails: TFormMails
             TabOrder = 1
             OnClick = ButtonOutGoingUploadClick
           end
-        end
-        object StringGridOutGoingFile: TStringGrid
-          Left = 860
-          Top = 69
-          Width = 416
-          Height = 559
-          Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine]
-          PopupMenu = PopupMenuOutGoingFile
-          TabOrder = 5
-          OnDblClick = StringGridOutGoingFileDblClick
+          object StringGridOutGoingFile: TStringGrid
+            Left = 4
+            Top = 69
+            Width = 416
+            Height = 559
+            Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine]
+            PopupMenu = PopupMenuOutGoingFile
+            TabOrder = 2
+            OnDblClick = StringGridOutGoingFileDblClick
+            RowHeights = (
+              24
+              24
+              23
+              24
+              24)
+          end
         end
       end
     end
     object TabSheet2: TTabSheet
       Caption = #1042#1093#1086#1076#1103#1097#1080#1077' '#1087#1080#1089#1100#1084#1072
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object GroupBox4: TGroupBox
         Left = 0
         Top = 0
@@ -120,6 +131,7 @@ object FormMails: TFormMails
         Height = 631
         Align = alClient
         TabOrder = 0
+        ExplicitWidth = 857
         object Editincoming: TEdit
           Left = 6
           Top = 13

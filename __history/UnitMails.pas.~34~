@@ -8,7 +8,7 @@ uses
   Vcl.Grids, Data.DB, mySQLDbTables, Vcl.Menus,idFTP,IdFTPCommon,Vcl.FileCtrl;
 
 type
-
+  THackStringGrid = class(TStringGrid);
    Letters = record
     ID: String;
     NumberMails: String;
@@ -100,8 +100,7 @@ type
     procedure EditincomingKeyPress(Sender: TObject; var Key: Char);
     procedure ButtonIncomingSearchClick(Sender: TObject);
     procedure Button4Click(Sender: TObject);
-    procedure StringGridOutGoingFileSelectCell(Sender: TObject; ACol,
-      ARow: Integer; var CanSelect: Boolean);
+    procedure FormResize(Sender: TObject);
 
 
   private
@@ -144,6 +143,7 @@ var
    MyThreadUpload : TMyThreadUpload;
    MyThreadSave : TMyThreadSave;
    ThreadExecute : Boolean;
+   width,heigth : integer;
 
 
 implementation
@@ -219,7 +219,7 @@ var
  i,Row:integer;
  lastAddID,NameFile: String; today : TDateTime;
 begin
-      OpenDialog := TOpenDialog.Create(self);
+     OpenDialog := TOpenDialog.Create(self);
       OpenDialog.InitialDir := GetCurrentDir;
       OpenDialog.Options := [ofFileMustExist];
       OpenDialog.Options := [ofAllowMultiSelect];
@@ -244,7 +244,8 @@ begin
 
       end;
 
-     if not ThreadExecute then
+
+        if not ThreadExecute then
       begin
       MyThreadUpload:=TMyThreadUpload.Create(False);
       MyThreadUpload.Priority:=tpNormal;
@@ -252,8 +253,10 @@ begin
       end else showmessage('Дождитесь загрузки файлов');
 
 
-
      end;
+
+
+
 
 
 
@@ -402,7 +405,7 @@ begin
     for i := 0 to  Length(ArrFiles) - 1 do
         begin
 
-        SQLText := SQLtext + '(NULL, ''' + ArrFiles[i] + ''', ''' + inttostr(variant) + ''', '''+StringGridOutGoing.Cells[0,Row]+''', 1), ';
+        SQLText := SQLtext + '(NULL, ''' + ArrFiles[i] + ''', ''' + inttostr(variant) + ''', '''+OutGoing[row - 1].ID+''', 1), ';
         end;
 
        Delete(SQLtext, Length(SQLText)-1, 1);
@@ -435,6 +438,7 @@ end;
 
 procedure TFormMails.ButtonOutGoingUploadClick(Sender: TObject);
 begin
+
   UploadOutGoingFiles();
 end;
 
@@ -503,6 +507,29 @@ begin
 
 end;
 
+procedure TFormMails.FormResize(Sender: TObject);
+begin
+    if FormMails.Width < 1300 then FormMails.Width := 1300;
+    if FormMails.Height < 700 then FormMails.Height := 700;
+//    FormMails.Constraints := 1300;
+
+    StringGridIncoming.Width := FormMails.Width - 455;
+    StringGridIncoming.Height := FormMails.Height - 118;
+    GroupBoxIncomingFile.Left := FormMails.Width - 443;
+    GroupBoxIncomingFile.Height := FormMails.Height - 70;
+    StringGridIncomingFile.Height := FormMails.Height - 141;
+    StringGridIncoming.ColWidths[2] := StringGridIncoming.Width - 435;
+
+    StringGridOutGoing.Width := FormMails.Width - 455;
+    StringGridOutGoing.Height := FormMails.Height - 118;
+    GroupBoxOutGoingFile.Left := FormMails.Width - 443;
+    GroupBoxOutGoingFile.Height := FormMails.Height - 70;
+    StringGridOutGoingFile.Height := FormMails.Height - 141;
+    StringGridOutGoing.ColWidths[2] := StringGridIncoming.Width - 435;
+
+
+end;
+
 procedure TFormMails.idFTPConnet();
 begin
     idFTP:=TidFTP.Create(nil);
@@ -528,13 +555,15 @@ begin
      ' ORDER BY ListOutgoingMailsID DESC';
      MySQLQueryLetters.Active := true;
 
-
+     finalize(OutGoing);
      MySQLQueryLetters.Last;
      SetLength(OutGoing,MySQLQueryLetters.RecNo);
      StringGridOutGoing.RowCount := MySQLQueryLetters.RecNo + 1;
      MySQLQueryLetters.First;
 
      i := 0;
+      StringGridView(StringGridOutGoing);
+
      while not MySQLQueryLetters.Eof do
      begin
         OutGoing[i].ID := MySQLQueryLetters.FieldByName('ListOutgoingMailsID').AsString;
@@ -543,16 +572,16 @@ begin
         OutGoing[i].Time := MySQLQueryLetters.FieldByName('TimeAdd').AsString;
         OutGoing[i].Status := MySQLQueryLetters.FieldByName('StatusMails').AsString;
 
-        StringGridOutGoing.Cells[0,i + 1] := OutGoing[i].ID;
-        StringGridOutGoing.Cells[1,i + 1] := OutGoing[i].ShortEssence;
-        StringGridOutGoing.Cells[2,i + 1] := OutGoing[i].Date;
-        StringGridOutGoing.Cells[3,i + 1] := OutGoing[i].Time;
-        StringGridOutGoing.Cells[4,i + 1] := OutGoing[i].Status;
+        StringGridOutGoing.Cells[1,i + 1] := OutGoing[i].ID;
+        StringGridOutGoing.Cells[2,i + 1] := OutGoing[i].ShortEssence;
+        StringGridOutGoing.Cells[3,i + 1] := OutGoing[i].Date;
+        StringGridOutGoing.Cells[4,i + 1] := OutGoing[i].Time;
+        StringGridOutGoing.Cells[5,i + 1] := OutGoing[i].Status;
         MySQLQueryLetters.Next;
         i := i + 1;
      end;
 
-     StringGridView(StringGridOutGoing);
+
 
 end;
 
@@ -587,11 +616,11 @@ begin
         Incoming[i].Time := MySQLQueryLetters.FieldByName('TimeAdd').AsString;
         Incoming[i].Status := MySQLQueryLetters.FieldByName('StatusMails').AsString;
 
-        StringGridIncoming.Cells[0,i + 1] := Incoming[i].NumberMails;
-        StringGridIncoming.Cells[1,i + 1] := Incoming[i].ShortEssence;
-        StringGridIncoming.Cells[2,i + 1] := Incoming[i].Date;
-        StringGridIncoming.Cells[3,i + 1] := Incoming[i].Time;
-        StringGridIncoming.Cells[4,i + 1] := Incoming[i].Status;
+        StringGridIncoming.Cells[1,i + 1] := Incoming[i].NumberMails;
+        StringGridIncoming.Cells[2,i + 1] := Incoming[i].ShortEssence;
+        StringGridIncoming.Cells[3,i + 1] := Incoming[i].Date;
+        StringGridIncoming.Cells[4,i + 1] := Incoming[i].Time;
+        StringGridIncoming.Cells[5,i + 1] := Incoming[i].Status;
         MySQLQueryLetters.Next;
         i := i + 1;
      end;
@@ -632,7 +661,6 @@ if Row <> 0 then
    end;
 
     OutGoingFileView();
-
 end;
 
 procedure TFormMails.N2Click(Sender: TObject);
@@ -669,6 +697,7 @@ begin
 end;
 
 procedure TFormMails.N3Click(Sender: TObject);
+
 var
    Row,Tip : integer;
    WND:HWND;
@@ -692,14 +721,14 @@ if Row <> 0 then
         ' `listoutgoingmails`.`ListOutgoingMailsID` = '''+OutGoing[Row - 1].ID +''' ';
 
         MySQLQueryLetters.ExecSQL;
-
+        THackStringGrid(StringGridOutGoing).DeleteRow(Row);
        end;
 
      end;
 
    end;
 
-    ListOutGoingView();
+   // ListOutGoingView();
 
 end;
 
@@ -727,14 +756,14 @@ if Row <> 0 then
         ' `ListIncomingMails`.`ListIncomingMailsID` = '''+Incoming[Row - 1].ID +''' ';
 
         MySQLQueryLetters.ExecSQL;
-
+       THackStringGrid(StringGridIncoming).DeleteRow(Row);
        end;
 
      end;
 
    end;
 
-    ListIncomingView();
+   // ListIncomingView();
 end;
 
 procedure TFormMails.N5Click(Sender: TObject);
@@ -808,9 +837,24 @@ begin
    if Row <> 0 then
    begin
       Col := StringGridIncoming.Col;
+
     if StringGridIncoming.Col = 1 then
       begin
-      Str:= InputBox('Ввод Описание',' ',StringGridIncoming.Cells[1,row]);
+      Str:= InputBox('Ввод номера',' ',StringGridIncoming.Cells[1,row]);
+
+      MySQLQueryLetters := TMySQLQuery.Create(Application);
+      MySQLQueryLetters.Database := MySQLDatabaseLetters;
+      MySQLQueryLetters.SQL.Text := 'UPDATE `ListIncomingMails` SET `NumberMails` = '''+str+''' '+
+      ' WHERE `ListIncomingMailsID` = '''+ Incoming[row - 1].ID +''' ';
+      MySQLQueryLetters.ExecSQL;
+
+      ListIncomingView();
+
+      end;
+
+    if StringGridIncoming.Col = 2 then
+      begin
+      Str:= InputBox('Ввод Описание',' ',StringGridIncoming.Cells[2,row]);
 
       MySQLQueryLetters := TMySQLQuery.Create(Application);
       MySQLQueryLetters.Database := MySQLDatabaseLetters;
@@ -823,11 +867,11 @@ begin
       end;
 
 
-    if StringGridIncoming.Col = 4 then
+    if StringGridIncoming.Col = 5 then
       begin
          UnitStatusChange.Status := StringGridIncoming.Cells[Col,Row];
          UnitStatusChange.ID := Incoming[Row-1].ID;
-         UnitStatusChange.Variant := 1;
+         UnitStatusChange.StatusType := 1;
          FormStatusChange.Create();
          FormStatusChange.Showmodal;
       end;
@@ -861,7 +905,7 @@ procedure TFormMails.StringGridIncomingMouseDown(Sender: TObject;
 var Row : integer;
 begin
    Row := StringGridIncoming.Row;
-   GroupBoxIncomingFile.Caption := 'Загруженные файлы к письму # '+ StringGridIncoming.Cells[0,Row];
+   GroupBoxIncomingFile.Caption := 'Загруженные файлы к письму # '+ StringGridIncoming.Cells[1,Row];
 
    if Row <> 0 then
    begin
@@ -895,9 +939,9 @@ begin
    if Row <> 0 then
    begin
       Col := StringGridOutGoing.Col;
-    if StringGridOutGoing.Col = 1 then
+    if StringGridOutGoing.Col = 2 then
       begin
-      Str:= InputBox('Ввод Описание',' ',StringGridOutGoing.Cells[1,row]);
+      Str:= InputBox('Ввод Описание',' ',StringGridOutGoing.Cells[2,row]);
 
       MySQLQueryLetters := TMySQLQuery.Create(Application);
       MySQLQueryLetters.Database := MySQLDatabaseLetters;
@@ -910,11 +954,11 @@ begin
       end;
 
 
-    if StringGridOutGoing.Col = 4 then
+    if StringGridOutGoing.Col = 5 then
       begin
          UnitStatusChange.Status := StringGridOutGoing.Cells[Col,Row];
-         UnitStatusChange.ID := StringGridOutGoing.Cells[0,Row];
-         UnitStatusChange.Variant := 0;
+         UnitStatusChange.ID := StringGridOutGoing.Cells[1,Row];
+         UnitStatusChange.StatusType := 0;
          FormStatusChange.Create();
          FormStatusChange.Showmodal;
       end;
@@ -930,36 +974,27 @@ begin
     if Row <> 0 then
     begin
     Str:= InputBox('Ввод Описание файла',' ',StringGridOutGoingFile.Cells[2,row]);
+    if Length(Str) > 0 then
+      begin
+      MySQLQueryLetters := TMySQLQuery.Create(Application);
+      MySQLQueryLetters.Database := MySQLDatabaseLetters;
+      MySQLQueryLetters.SQL.Text := 'UPDATE `listfiles` SET ' +
+      ' Description = '''+Str+''' WHERE `listfiles`.`FileID` = '''+OutGoingFile[row - 1].ID +''' ';
+      MySQLQueryLetters.ExecSQL;
 
-    MySQLQueryLetters := TMySQLQuery.Create(Application);
-    MySQLQueryLetters.Database := MySQLDatabaseLetters;
-    MySQLQueryLetters.SQL.Text := 'UPDATE `listfiles` SET ' +
-    ' Description = '''+Str+''' WHERE `listfiles`.`FileID` = '''+OutGoingFile[row - 1].ID +''' ';
-    MySQLQueryLetters.ExecSQL;
-
-    OutGoingFileView();
+      OutGoingFileView();
+      end;
     end;
 
 
 end;
-
-procedure TFormMails.StringGridOutGoingFileSelectCell(Sender: TObject; ACol,
-  ARow: Integer; var CanSelect: Boolean);
-begin
-    if Arow = 0 then
-//  StringGridOutGoingFile.Options := StringGridOutGoingFile.Options + [goRowSelect]
-  StringGridOutGoingFile.Options :=StringGridOutGoingFile.Options - [goDrawFocusSelected]
- else
-    StringGridOutGoingFile.Options :=StringGridOutGoingFile.Options + [goDrawFocusSelected];
-
-    end;
 
 procedure TFormMails.StringGridOutGoingMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var Row : integer;
 begin
  Row := StringGridOutGoing.Row;
- GroupBoxOutGoingFile.Caption := 'Загруженные файлы к письму # '+ StringGridOutGoing.Cells[0,Row];
+ GroupBoxOutGoingFile.Caption := 'Загруженные файлы к письму # '+ StringGridOutGoing.Cells[1,Row];
    if Row <> 0 then
    begin
      if Button = mbRight then
@@ -986,19 +1021,20 @@ begin
 end;
 
 
-
 procedure TFormMails.StringGridView(StringGrid : TStringGrid);
 begin
-    StringGrid.Cells[0,0] := 'Номер';
-    StringGrid.Cells[1,0] := 'Краткая суть письма';
-    StringGrid.Cells[2,0] := 'Дата';
-    StringGrid.Cells[3,0] := 'Время';
-    StringGrid.Cells[4,0] := 'Статус';
-    StringGrid.ColWidths[0] := 80;
-    StringGrid.ColWidths[1] := 410;
-    StringGrid.ColWidths[2] := 75;
-    StringGrid.ColWidths[3] := 50;
-    StringGrid.ColWidths[4] := 222;
+    StringGrid.ColCount := 6;
+    StringGrid.Cells[1,0] := 'Номер';
+    StringGrid.Cells[2,0] := 'Краткая суть письма';
+    StringGrid.Cells[3,0] := 'Дата';
+    StringGrid.Cells[4,0] := 'Время';
+    StringGrid.Cells[5,0] := 'Статус';
+    StringGrid.ColWidths[0] := 0;
+    StringGrid.ColWidths[1] := 80;
+    StringGrid.ColWidths[2] := 410;
+    StringGrid.ColWidths[3] := 75;
+    StringGrid.ColWidths[4] := 50;
+    StringGrid.ColWidths[5] := 221;
 end;
 
 procedure TFormMails.OutGoingFileView();
@@ -1010,7 +1046,7 @@ begin
    MySQLQueryLetters := TMySQLQuery.Create(Application);
    MySQLQueryLetters.Database := MySQLDatabaseLetters;
    MySQLQueryLetters.SQL.Text := 'SELECT FileID,FileName, Description FROM listfiles WHERE '+
-   ' TableID = '+ OutGoing_ID +' AND FileType = 0 AND Visible = 1';
+   ' TableID = '''+ OutGoing_ID +''' AND FileTypE = 0 AND Visible = 1';
    MySQLQueryLetters.Active := true;
 
    MySQLQueryLetters.Last;
@@ -1051,7 +1087,7 @@ procedure TFormMails.IncomingFileView();
 var i : integer;
 begin
 
-  MySQLQueryLetters := TMySQLQuery.Create(Application);
+   MySQLQueryLetters := TMySQLQuery.Create(Application);
    MySQLQueryLetters.Database := MySQLDatabaseLetters;
    MySQLQueryLetters.SQL.Text := 'SELECT FileID,FileName, Description FROM listfiles WHERE '+
    ' TableID = '+ Incoming_ID +' AND FileType = 1 AND Visible = 1';
